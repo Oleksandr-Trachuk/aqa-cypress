@@ -1,0 +1,5 @@
+node_modules/
+cypress/artifacts/
+cypress/downloads/
+.DS_Store
+cypress.env.json
