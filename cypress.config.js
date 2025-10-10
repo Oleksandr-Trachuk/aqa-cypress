@@ -2,21 +2,16 @@ const { defineConfig } = require('cypress');
 
 module.exports = defineConfig({
   e2e: {
-    baseUrl: 'https://example.cypress.io', // поки що демо
+    // базова адреса з basic-auth
+    baseUrl: 'https://guest:welcome2qauto@qauto.forstudy.space',
     specPattern: 'cypress/e2e/**/*.cy.{js,jsx,ts,tsx}',
     supportFile: 'cypress/support/e2e.js',
     setupNodeEvents(on, config) {
-      // плагіни/репортери за потреби
       return config;
     },
   },
-  viewportWidth: 1280,
-  viewportHeight: 800,
-  retries: {
-    runMode: 2,
-    openMode: 0,
-  },
-  video: true,
-  screenshotsFolder: 'cypress/artifacts/screenshots',
-  videosFolder: 'cypress/artifacts/videos',
+  viewportWidth: 1366,
+  viewportHeight: 900,
+  pageLoadTimeout: 120000,
+  video: false,
 });
