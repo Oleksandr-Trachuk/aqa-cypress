@@ -12,7 +12,6 @@ describe('Landing smoke (public)', () => {
     cy.intercept('POST', '**/youtubei/**', { statusCode: 204 });
     cy.intercept('GET', '**/pagead/**', { statusCode: 204 });
 
-    // baseUrl має містити guest:welcome2qauto@ 
     cy.visit('/');
 
     cy.contains(/do more!/i, { timeout: 15000 }).should('be.visible');
@@ -39,8 +38,6 @@ describe('Landing smoke (public)', () => {
     cy.contains(/do more!/i).should('be.visible');
   });
 });
-
-// ───────────── Header & Footer (robust checks) ─────────────
 describe('Header & Footer (robust checks)', () => {
   beforeEach(() => {
     cy.intercept('POST', '**/youtubei/**', { statusCode: 204 });
@@ -91,7 +88,6 @@ describe('Header & Footer (robust checks)', () => {
       .scrollIntoView()
       .as('contacts');
 
-    // Лінк на сайт (по тексту або href)
     cy.get('@contacts')
       .find('a')
       .filter((_, el) =>
@@ -103,7 +99,6 @@ describe('Header & Footer (robust checks)', () => {
       .invoke('attr', 'href')
       .should('match', /^https?:\/\/(www\.)?ithillel\.ua/i);
 
-    // Email — будь-який локал-парт, головне домен @ithillel.ua
     cy.get('@contacts')
       .find('a[href^="mailto:"]')
       .filter((_, el) => /@ithillel\.ua/i.test(el.getAttribute('href') || ''))
