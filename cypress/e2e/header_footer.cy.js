@@ -1,10 +1,10 @@
 describe('Landing smoke (public)', () => {
   beforeEach(() => {
-    // mute noisy 3rd-party requests, щоб не заважали таймінгам
+    // mute noisy 3rd-party requests, so as not to interfere with the timings
     cy.intercept('POST', '**/youtubei/**', { statusCode: 204 }).as('yt');
     cy.intercept('GET',  '**/pagead/**',   { statusCode: 204 }).as('ads');
 
-    // baseUrl вже має бути з guest:welcome2qauto@ у cypress.config.js
+    // baseUrl should already be with guest:welcome2qauto@ in cypress.config.js
     cy.visit('/');
 
     // make sure the main screen is displayed
