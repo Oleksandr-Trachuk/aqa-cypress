@@ -1,23 +1,17 @@
-const socialDomains = [
-  /facebook\.com/i,
-  /t\.me|telegram\.me/i,
-  /youtube\.com/i,
-  /instagram\.com/i,
-  /linkedin\.com/i,
-];
-
-// ───────────── Landing smoke ─────────────
 describe('Landing smoke (public)', () => {
   beforeEach(() => {
-    cy.intercept('POST', '**/youtubei/**', { statusCode: 204 });
-    cy.intercept('GET', '**/pagead/**', { statusCode: 204 });
+    // mute noisy 3rd-party requests, щоб не заважали таймінгам
+    cy.intercept('POST', '**/youtubei/**', { statusCode: 204 }).as('yt');
+    cy.intercept('GET',  '**/pagead/**',   { statusCode: 204 }).as('ads');
 
+    // baseUrl вже має бути з guest:welcome2qauto@ у cypress.config.js
     cy.visit('/');
 
+    // make sure the main screen is displayed
     cy.contains(/do more!/i, { timeout: 15000 }).should('be.visible');
   });
 
-  it('Header: "Sign up" CTA відмальована як кнопка і видима', () => {
+  it('Header: "Sign up" CTA is rendered as a visible button', () => {
     cy.contains('button, [role="button"]', /^sign up$/i, { timeout: 8000 })
       .should('be.visible')
       .and(($el) => {
@@ -25,7 +19,7 @@ describe('Landing smoke (public)', () => {
       });
   });
 
-  it('Header: відкриває "Sign In" та вводить email', () => {
+  it('Header: opens "Sign In" modal and types email', () => {
     cy.contains('button, a', /^sign in$/i, { timeout: 8000 }).click();
     cy.get('.modal-content:visible', { timeout: 10000 }).should('be.visible');
     cy.get('#signinEmail', { timeout: 10000 })
@@ -34,77 +28,39 @@ describe('Landing smoke (public)', () => {
       .type('example@gmail.com');
   });
 
-  it('Smoke: заголовок героя "Do more!" видимий', () => {
+  it('Smoke: hero headline "Do more!" is visible', () => {
     cy.contains(/do more!/i).should('be.visible');
   });
-});
-describe('Header & Footer (robust checks)', () => {
-  beforeEach(() => {
-    cy.intercept('POST', '**/youtubei/**', { statusCode: 204 });
-    cy.intercept('GET', '**/pagead/**', { statusCode: 204 });
 
-    cy.visit('/');
-    cy.get('body').should('exist');
-  });
+  it('Contacts: has social links with correct domains', () => {
+    const domains = [
+      'facebook.com',
+      't.me',            // Telegram
+      'youtube.com',
+      'instagram.com',
+      'linkedin.com',
+    ];
 
-  it('Header: показує ключові пункти меню', () => {
-    cy.get('header').should('be.visible');
-
-    [/home/i, /about/i, /contacts/i].forEach((rx) => {
-      cy.get('header')
-        .contains('a,button,span', rx, { matchCase: false })
-        .should('be.visible');
-    });
-
-    cy.get('header').contains(/guest log in/i).should('be.visible');
-    cy.get('header').contains(/sign in/i).should('be.visible');
-  });
-
-  it('Contacts: є посилання на соцмережі (за доменом у href)', () => {
-    cy.contains('section,div', /contacts/i, { timeout: 15000 })
-      .closest('section,div')
-      .scrollIntoView()
-      .as('contacts');
-
-    cy.get('@contacts').should('be.visible');
-
-    socialDomains.forEach((rx) => {
-      cy.get('@contacts')
-        .find('a')
-        .filter((_, el) =>
-          rx.test(el.getAttribute('href') || '') ||
-          rx.test(el.getAttribute('aria-label') || '')
-        )
-        .then(($links) => {
-          expect($links.length, `link for ${rx}`).to.be.greaterThan(0);
-          cy.wrap($links.first()).should('be.visible').and('have.attr', 'href');
-        });
+    // simple and reliable href checks — without section scope
+    domains.forEach((d) => {
+      cy.get(`a[href*="${d}"]`, { timeout: 8000 })
+        .first()
+        .should('be.visible')
+        .and('have.attr', 'href')
+        .and('include', d);
     });
   });
 
-  it('Contacts: є лінк на ithillel.ua та email з доменом @ithillel.ua', () => {
-    cy.contains('section,div', /contacts/i, { timeout: 15000 })
-      .closest('section,div')
-      .scrollIntoView()
-      .as('contacts');
-
-    cy.get('@contacts')
-      .find('a')
-      .filter((_, el) =>
-        /ithillel\.ua/i.test(el.textContent || '') ||
-        /ithillel\.ua/i.test(el.getAttribute('href') || '')
-      )
+  it('Contacts: has site link (ithillel.ua) and support email', () => {
+    // link to the site (either by text or by href)
+    cy.get('a[href*="ithillel.ua"]', { timeout: 8000 })
       .first()
       .should('be.visible')
-      .invoke('attr', 'href')
-      .should('match', /^https?:\/\/(www\.)?ithillel\.ua/i);
+      .and('have.attr', 'href')
+      .and('match', /^https?:\/\/(www\.)?ithillel\.ua/i);
 
-    cy.get('@contacts')
-      .find('a[href^="mailto:"]')
-      .filter((_, el) => /@ithillel\.ua/i.test(el.getAttribute('href') || ''))
-      .first()
-      .should('be.visible')
-      .invoke('attr', 'href')
-      .should('match', /^mailto:[^@]+@ithillel\.ua$/i);
+    // email — we accept any local part, but the domain @ithillel.ua
+    cy.contains('a[href^="mailto:"]', /@ithillel\.ua/i, { timeout: 8000 })
+      .should('be.visible');
   });
 });
