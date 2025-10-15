@@ -2,7 +2,7 @@ const { defineConfig } = require('cypress');
 
 module.exports = defineConfig({
   e2e: {
-    // базова адреса з basic-auth
+    // base address with basic-auth
     baseUrl: 'https://guest:welcome2qauto@qauto.forstudy.space',
     specPattern: 'cypress/e2e/**/*.cy.{js,jsx,ts,tsx}',
     supportFile: 'cypress/support/e2e.js',
